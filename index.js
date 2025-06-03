@@ -133,10 +133,11 @@ async function run() {
         // Name API endpoints
         app.get("/names", async (req, res) => {
             try {
-                const result = await namesCollection.find().sort({ _id: -1 }).toArray();
-                return res.status(200).send(result);
+                const result = await namesCollection.find().toArray();
+                console.log("Fetched names:", result);
+                return res.send(result);
             } catch (error) {
-                return res.status(500).send({ message: "Internal server error" });
+                return res.status(500).send({ message: "Internal server error razzak" });
             }
         });
 
@@ -170,7 +171,7 @@ async function run() {
                     name: newName
                 });
             } catch (error) {
-                return res.status(500).send({ message: "Internal server error" });
+                return res.status(500).send({ message: "Internal server error " });
             }
         });
 
