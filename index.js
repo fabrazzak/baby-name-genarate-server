@@ -27,6 +27,108 @@ async function run() {
     try {
         const namesCollection = client.db("babyname").collection("names");
         const usersCollection = client.db("babyname").collection("users");
+        const affiliatesCollection = client.db("babyname").collection("affiliates");
+
+
+
+        // Affiliate endpoints
+        app.post("/affiliates", async (req, res) => {
+            const { title, imageLink, productLink, description } = req.body;
+
+            if (!title || !imageLink || !productLink || !description) {
+                return res.status(400).send({ message: "All fields are required" });
+            }
+
+            try {
+                const newAffiliate = {
+                    title,
+                    imageLink,
+                    productLink,
+                    description,
+                    status: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+
+                const result = await affiliatesCollection.insertOne(newAffiliate);
+                return res.status(201).send({
+                    message: "Affiliate added successfully",
+                    insertedId: result.insertedId,
+                    affiliate: newAffiliate
+                });
+            } catch (error) {
+                return res.status(500).send({ message: "Internal server error" });
+            }
+        });
+
+        app.get("/affiliates", async (req, res) => {
+            try {
+                const result = await affiliatesCollection.find().sort({ _id: -1 }).toArray();
+                return res.status(200).send(result);
+            } catch (error) {
+                return res.status(500).send({ message: "Internal server error" });
+            }
+        });
+
+        app.put("/affiliates/:id", async (req, res) => {
+            const { id } = req.params;
+            const { title, imageLink, productLink, description } = req.body;
+
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).send({ message: "Invalid ID format" });
+            }
+
+            if (!title || !imageLink || !productLink || !description) {
+                return res.status(400).send({ message: "All fields are required" });
+            }
+
+            try {
+                const updatedAffiliate = {
+                    title,
+                    imageLink,
+                    productLink,
+                    description,
+                    status: false,
+                    updatedAt: new Date()
+                };
+
+                const result = await affiliatesCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: updatedAffiliate }
+                );
+
+                if (result.modifiedCount === 0) {
+                    return res.status(400).send({ message: "No changes made" });
+                }
+
+                return res.status(200).send({
+                    message: "Affiliate updated successfully",
+                    affiliate: updatedAffiliate
+                });
+            } catch (error) {
+                return res.status(500).send({ message: "Internal server error" });
+            }
+        });
+
+        app.delete("/affiliates/:id", async (req, res) => {
+            const { id } = req.params;
+
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).send({ message: "Invalid ID format" });
+            }
+
+            try {
+                const result = await affiliatesCollection.deleteOne({ _id: new ObjectId(id) });
+
+                if (result.deletedCount === 1) {
+                    return res.status(200).send({ message: "Affiliate deleted successfully" });
+                } else {
+                    return res.status(404).send({ message: "Affiliate not found" });
+                }
+            } catch (error) {
+                return res.status(500).send({ message: "Internal server error" });
+            }
+        });
 
         // User API endpoints
         app.post("/users", async (req, res) => {
