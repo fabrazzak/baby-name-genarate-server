@@ -110,6 +110,38 @@ async function run() {
             }
         });
 
+
+        app.put("/affiliates/active/:id", async (req, res) => {
+            const { id } = req.params;
+
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).send({ message: "Invalid ID format" });
+            }
+
+            try {
+                const result = await affiliatesCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { status: true } } // Only updating the 'status' field
+                );
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).send({ message: "Affiliate not found" });
+                }
+
+                if (result.modifiedCount === 0) {
+                    return res.status(200).send({ message: "Status was already true" });
+                }
+
+                return res.status(200).send({
+                    message: "Affiliate status updated successfully",
+                    updatedStatus: true
+                });
+            } catch (error) {
+                return res.status(500).send({ message: "Internal server error", error });
+            }
+        });
+
+
         app.delete("/affiliates/:id", async (req, res) => {
             const { id } = req.params;
 
